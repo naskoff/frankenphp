@@ -1,0 +1,59 @@
+services:
+  php:
+    build:
+      target: dev
+    ports: [ "9001", "9013" ]
+  db:
+    image: mariadb:11.5.2
+    restart: always
+    ports:
+      - "23306:3306"
+    volumes:
+      - db-data:/var/lib/mysql
+    environment:
+      MARIADB_USER: ${DB_USER}
+      MARIADB_PASSWORD: ${DB_PASS}
+      MARIADB_DATABASE: ${DB_NAME}
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+  db-test:
+    image: mariadb:11.5
+    restart: always
+    ports:
+      - "33306:3306"
+    environment:
+      MARIADB_USER: ${DB_USER}
+      MARIADB_PASSWORD: ${DB_PASS}
+      MARIADB_DATABASE: ${DB_NAME}
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+  rabbitmq:
+    image: rabbitmq:3.13.7-management-alpine
+    restart: always
+    ports:
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
+      RABBITMQ_DEFAULT_VHOST: /
+  redis:
+    image: redis:7.4.0-alpine
+    restart: always
+  redis-insight:
+    image: redislabs/redisinsight:2.54
+    restart: always
+    ports:
+      - "5540:5540"
+    depends_on:
+      - redis
+  mailpit:
+    image: axllent/mailpit
+    restart: unless-stopped
+    ports:
+      - target: 8025
+        published: 8025
+        protocol: tcp
+    environment:
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+
+volumes:
+  db-data:
